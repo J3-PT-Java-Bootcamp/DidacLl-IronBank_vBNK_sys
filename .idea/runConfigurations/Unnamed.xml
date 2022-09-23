@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Unnamed" type="CompoundRunConfigurationType">
+    <toRun name="VBnkAntiFraudServiceApplication" type="SpringBootApplicationConfigurationType" />
+    <toRun name="VBnkDataServiceApplication" type="SpringBootApplicationConfigurationType" />
+    <toRun name="VBnkDiscoveryServiceApplication" type="SpringBootApplicationConfigurationType" />
+    <toRun name="VBnkGatewayApplication" type="SpringBootApplicationConfigurationType" />
+    <toRun name="VBnkTransactionServiceApplication" type="SpringBootApplicationConfigurationType" />
+    <toRun name="vBNKAuthenticationServiceApplication" type="SpringBootApplicationConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>

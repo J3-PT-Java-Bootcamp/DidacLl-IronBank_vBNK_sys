@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/vBNK_security-service/vBNK-authentication-service.iml" filepath="$PROJECT_DIR$/vBNK_security-service/vBNK-authentication-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vBNK_anti-fraud-service/vBNK_anti-fraud-service.iml" filepath="$PROJECT_DIR$/vBNK_anti-fraud-service/vBNK_anti-fraud-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vBNK_data-service/vBNK_data-service.iml" filepath="$PROJECT_DIR$/vBNK_data-service/vBNK_data-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vBNK_discovery-service/vBNK_discovery-service.iml" filepath="$PROJECT_DIR$/vBNK_discovery-service/vBNK_discovery-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vBNK_transaction-service/vBNK_transaction-service.iml" filepath="$PROJECT_DIR$/vBNK_transaction-service/vBNK_transaction-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vBNKsys.iml" filepath="$PROJECT_DIR$/vBNKsys.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vBNK_gateway-service/vbnk-gateway.iml" filepath="$PROJECT_DIR$/vBNK_gateway-service/vbnk-gateway.iml" />
+    </modules>
+  </component>
+</project>
