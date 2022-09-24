@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Unnamed" type="CompoundRunConfigurationType">
+  <configuration default="false" name="vBNK Launcher" type="CompoundRunConfigurationType">
+    <toRun name="keycloak" type="BatchConfigurationType" />
     <toRun name="VBnkAntiFraudServiceApplication" type="SpringBootApplicationConfigurationType" />
     <toRun name="VBnkDataServiceApplication" type="SpringBootApplicationConfigurationType" />
     <toRun name="VBnkDiscoveryServiceApplication" type="SpringBootApplicationConfigurationType" />
