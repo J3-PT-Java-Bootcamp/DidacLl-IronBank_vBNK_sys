@@ -284,7 +284,7 @@ public class VBAccountServiceImpl implements VBAccountService {
                 .retrieve().bodyToMono(StatementView[].class)
                 .block();
         var list= List.of(res);
-        Collections.addAll(list, res2);
+        if(res2!=null&&res2.length>0)Collections.addAll(list, res2);
         return list.toArray(new StatementView[0]);
     }
 
