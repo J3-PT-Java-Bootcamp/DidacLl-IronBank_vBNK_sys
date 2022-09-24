@@ -97,7 +97,7 @@ public class AccountControllerWeb implements AccountController {
         var acc= service.getAccount(accountRef);
         if(!(VBNKConfig.isAdmin(auth)
                 ||acc.getPrimaryOwner().getId().equalsIgnoreCase(VBNKConfig.getUserIdFromAuth(auth))
-                ||acc.getSecondaryOwner().getId().equalsIgnoreCase(VBNKConfig.getUserIdFromAuth(auth))))
+                ||(acc.getSecondaryOwner()!=null&&acc.getSecondaryOwner().getId().equalsIgnoreCase(VBNKConfig.getUserIdFromAuth(auth)))))
             throw new HttpResponseException(HttpStatus.FORBIDDEN.value(), "User not authorized for this account");
         return AccountView.fromDTO(acc,service.getStatements(0,accountRef,auth ));
    }

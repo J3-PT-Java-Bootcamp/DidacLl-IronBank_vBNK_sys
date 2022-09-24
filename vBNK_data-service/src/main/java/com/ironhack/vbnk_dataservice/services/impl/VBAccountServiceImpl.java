@@ -283,8 +283,15 @@ public class VBAccountServiceImpl implements VBAccountService {
                 .body(Mono.just(accID), String.class)
                 .retrieve().bodyToMono(StatementView[].class)
                 .block();
-        var list= List.of(res);
-        if(res2!=null&&res2.length>0)Collections.addAll(list, res2);
+        List<StatementView> list= new ArrayList<>();
+        if(res!=null)list = List.of(res);
+        try {
+            if (res2 != null && res2.length > 0) for(var elem: res2)list.add(elem);
+        }catch (Throwable err){
+            if(res2!=null)return list.toArray(new StatementView[0]);
+            if(res!=null)return list.toArray(new StatementView[0]);
+
+        }
         return list.toArray(new StatementView[0]);
     }
 

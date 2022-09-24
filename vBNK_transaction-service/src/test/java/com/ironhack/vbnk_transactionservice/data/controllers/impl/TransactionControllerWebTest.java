@@ -1,6 +1,6 @@
 package com.ironhack.vbnk_transactionservice.data.controllers.impl;
 
-import com.ironhack.vbnk_transactionservice.data.controllers.TransactionController;
+import com.ironhack.vbnk_transactionservice.controllers.TransactionController;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

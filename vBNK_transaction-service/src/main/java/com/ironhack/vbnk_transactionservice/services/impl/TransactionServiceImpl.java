@@ -15,7 +15,6 @@ import com.ironhack.vbnk_transactionservice.services.TransactionService;
 import com.ironhack.vbnk_transactionservice.utils.Money;
 import com.ironhack.vbnk_transactionservice.utils.VBError;
 import org.keycloak.adapters.RefreshableKeycloakSecurityContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -49,10 +48,13 @@ public class TransactionServiceImpl implements TransactionService {
     private WebClient antiFraudClient;
     private static final String[] DATA_SERVICE = new String[]{"vbnk-data-service", "/v1/data/client/test/ping"};
     private static final String[] ANTI_FRAUD_SERVICE = new String[]{"vbnk-anti-fraud-service", "/v1/af/client/test/ping"};
-    @Autowired
-    DiscoveryClient discoveryClient;
-    @Autowired
-    TransactionRepository repository;
+    private final DiscoveryClient discoveryClient;
+    private final TransactionRepository repository;
+
+    public TransactionServiceImpl(DiscoveryClient discoveryClient, TransactionRepository repository) {
+        this.discoveryClient = discoveryClient;
+        this.repository = repository;
+    }
 
 
     @Override
@@ -60,12 +62,10 @@ public class TransactionServiceImpl implements TransactionService {
         return ResponseEntity.ok(TransactionDTO.fromEntity(repository.findById(id).orElseThrow()));
     }
 
-
     @Override
     public void delete(String id) {
         repository.deleteById(id);
     }
-
 
     //-----------------------------------------------------------------------------------------------------INITIATE REQUESTS
     @Override
@@ -74,7 +74,7 @@ public class TransactionServiceImpl implements TransactionService {
         this.antiFraudClient = checkClientAvailable(ANTI_FRAUD_SERVICE, antiFraudClient);
         var idToken = getIdTokenFromAuth(authentication);
         var accessToken = getTokenStringFromAuth(authentication);
-        AFResponse afResponse = antiFraudValidation(request,accessToken);// antiFraudValidation(request, accessToken);
+        AFResponse afResponse = antiFraudValidation(request, accessToken);// antiFraudValidation(request, accessToken);
         var userId = getUserIdFromAuth(authentication);
         request.setOrderingUserId(userId);
         if (afResponse != null && afResponse.isAllValidated()) {
@@ -91,11 +91,11 @@ public class TransactionServiceImpl implements TransactionService {
                 } catch (Throwable err) {
                     res = null;
                 }
-                if (res == null)throw new HttpClientErrorException(BAD_REQUEST);
+                if (res == null) throw new HttpClientErrorException(BAD_REQUEST);
                 createTransactionsFromTransfer(res);
                 return ResponseEntity.ok(new TransferResponse().setState(OK));
             }
-            return ResponseEntity.status(CONFLICT).body(fraudFail(authentication,request.getFromAccount(),afResponse.getFraudLevel()));
+            return ResponseEntity.status(CONFLICT).body(fraudFail(authentication, request.getFromAccount(), afResponse.getFraudLevel()));
         }
         return ResponseEntity.status(BAD_REQUEST).body(new TransferResponse().setState(NOK).addErrors(FATAL_ERROR));
     }
@@ -121,15 +121,19 @@ public class TransactionServiceImpl implements TransactionService {
                     trans.getId()
             ));
             return ResponseEntity.ok(new TransferResponse().setState(PENDING));
-        }catch (Throwable err){
+        } catch (Throwable err) {
             return ResponseEntity.badRequest().body(new TransferResponse().setState(NOK).addErrors(USER_NOT_FOUND));
         }
     }
 
     @Override
     public List<StatementView> getAccountStatements(int pag, String account) {
-        var page = repository.findAllBySubjAccountOrderByModificationDesc(account, PageRequest.of(pag, 10));
-        return page.stream().map(StatementView::fromEntity).collect(Collectors.toCollection(ArrayList::new));
+        try {
+            var page = repository.findAllBySubjAccountOrderByModificationDesc(account, PageRequest.of(pag, 10));
+            return page.stream().map(StatementView::fromEntity).collect(Collectors.toCollection(ArrayList::new));
+        } catch (Throwable err) {
+            return new ArrayList<>();
+        }
     }
 
     @Override
@@ -144,7 +148,7 @@ public class TransactionServiceImpl implements TransactionService {
                 var res = dataClient.post()
                         .uri("/v1/data/client/tf/receive")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer "+getTokenStringFromAuth(authentication))
+                        .header("Authorization", "Bearer " + getTokenStringFromAuth(authentication))
                         .body(Mono.just(request), TransferRequest.class)
                         .retrieve().bodyToMono(DataTransferResponse.class)
                         .block();
@@ -152,7 +156,7 @@ public class TransactionServiceImpl implements TransactionService {
                     createTransaction(res, CHARGE);
                 return ResponseEntity.ok(new TransferResponse().setState(OK));
             }
-            return ResponseEntity.status(CONFLICT).body(fraudFail(authentication,request.getFromAccount(), afResponse.getFraudLevel()));
+            return ResponseEntity.status(CONFLICT).body(fraudFail(authentication, request.getFromAccount(), afResponse.getFraudLevel()));
         }
         return ResponseEntity.status(BAD_REQUEST).body(new TransferResponse().setState(NOK).addErrors(FATAL_ERROR));
     }
@@ -172,12 +176,12 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionDTO createTransaction(DataTransferResponse response, TransactionType type) throws ServiceUnavailableException {
         var request = response.getRequest();
-        NotificationRequest notRequest=new NotificationRequest();
+        NotificationRequest notRequest = new NotificationRequest();
         switch (type) {
 
             case BANK_CHARGE: {
                 notRequest.setTitle(VBNK_ENTITY_NAME + " charge in your account")
-                        .setMessage("You have a new charge from "+VBNK_ENTITY_NAME + " in your account")
+                        .setMessage("You have a new charge from " + VBNK_ENTITY_NAME + " in your account")
                         .setType(BANK_CHARGES_INTERESTS.name());
             }
             case CHARGE: {
@@ -190,17 +194,19 @@ public class TransactionServiceImpl implements TransactionService {
                         .setCurrentAccountBalance(new Money(response.getSrcBalance(), request.getCurrency()))
                         .setExpirationDate(null);
                 TransactionDTO transactionDTO = TransactionDTO.fromEntity(repository.save(entity));
-                if(notRequest.getType()!=null)sendNotificationToOwner(notRequest.setTransactionId(transactionDTO.getId())
-                        .setAccountRef(transactionDTO.getSubjAccount()));
+                if (notRequest.getType() != null)
+                    sendNotificationToOwner(notRequest.setTransactionId(transactionDTO.getId())
+                            .setAccountRef(transactionDTO.getSubjAccount()));
                 return transactionDTO;
             }
             case BANK_INCOME: {
                 notRequest.setTitle(VBNK_ENTITY_NAME + " income in your account")
-                        .setMessage("You have a new income from "+VBNK_ENTITY_NAME + " in your account")
-                        .setType(BANK_CHARGES_INTERESTS.name());            }
+                        .setMessage("You have a new income from " + VBNK_ENTITY_NAME + " in your account")
+                        .setType(BANK_CHARGES_INTERESTS.name());
+            }
             case INCOME: {
-                if(notRequest.getType()==null)notRequest.setTitle("New income in your account")
-                        .setMessage("You have a new income from "+request.getSenderDisplayName() + " in your account")
+                if (notRequest.getType() == null) notRequest.setTitle("New income in your account")
+                        .setMessage("You have a new income from " + request.getSenderDisplayName() + " in your account")
                         .setType(INCOMING.name());
 
                 TransactionDTO transactionDTO = TransactionDTO.fromEntity(repository.save(new VBTransaction()
@@ -217,8 +223,8 @@ public class TransactionServiceImpl implements TransactionService {
             }
             case PAYMENT_ORDER: {
                 notRequest.setTitle(VBNK_ENTITY_NAME + " charge in your account")
-                    .setMessage("You have a new charge from "+VBNK_ENTITY_NAME + " in your account")
-                    .setType(PAYMENT_CONFIRM.name());
+                        .setMessage("You have a new charge from " + VBNK_ENTITY_NAME + " in your account")
+                        .setType(PAYMENT_CONFIRM.name());
 
                 TransactionDTO transactionDTO = TransactionDTO.fromEntity(repository.save(new VBTransaction()
                         .setState(PENDING)
@@ -248,25 +254,25 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private void sendNotificationToOwner(NotificationRequest request) throws ServiceUnavailableException {
-        dataClient=checkClientAvailable(DATA_SERVICE,dataClient);
+        dataClient = checkClientAvailable(DATA_SERVICE, dataClient);
         try {
             var res = dataClient.post().uri("/v1/data/client/notifications")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Mono.just(request), NotificationRequest.class)
                     .retrieve().bodyToMono(String.class)
                     .block();
-        }catch (Throwable err){
+        } catch (Throwable err) {
             System.err.println(err);
         }
     }
 
-    private TransferResponse fraudFail(Authentication auth,String accRef, int fraudLevel) throws ServiceUnavailableException {
+    private TransferResponse fraudFail(Authentication auth, String accRef, int fraudLevel) throws ServiceUnavailableException {
         var res = new TransferResponse().setState(NOK);
         VBError err = null;
         switch (fraudLevel) {
             case (3): {
                 err = AF_3;
-                toogleFreezeAccount(auth,accRef);
+                toggleFreezeAccount(auth, accRef);
             }
             case (2): {
                 if (err == null) err = AF_2;
@@ -285,17 +291,17 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    private void toogleFreezeAccount(Authentication auth,String accRef) throws ServiceUnavailableException {
-        dataClient=checkClientAvailable(DATA_SERVICE,dataClient);
+    private void toggleFreezeAccount(Authentication auth, String accRef) throws ServiceUnavailableException {
+        dataClient = checkClientAvailable(DATA_SERVICE, dataClient);
         RefreshableKeycloakSecurityContext context = (RefreshableKeycloakSecurityContext) auth.getCredentials();
         var accessToken = context.getTokenString();
 
         try {
-            var res = dataClient.get().uri("/v1/data/auth/state?ref="+accRef)
-                    .header("Authorization","Bearer "+accessToken)
+            var res = dataClient.get().uri("/v1/data/auth/state?ref=" + accRef)
+                    .header("Authorization", "Bearer " + accessToken)
                     .retrieve().bodyToMono(String.class)
                     .block();
-        }catch (Throwable err){
+        } catch (Throwable err) {
             System.err.println(err);
         }
     }
@@ -304,7 +310,7 @@ public class TransactionServiceImpl implements TransactionService {
         var afResponse = antiFraudClient.patch()
                 .uri("/v1/af/client/validate")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer "+accessToken)
+                .header("Authorization", "Bearer " + accessToken)
                 .body(Mono.just(AFRequest.fromTransferRequest(request)), AFRequest.class)
                 .retrieve().bodyToMono(AFResponse.class)
                 .block();

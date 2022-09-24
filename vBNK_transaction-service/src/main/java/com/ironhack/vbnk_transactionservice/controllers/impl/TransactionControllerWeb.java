@@ -1,8 +1,8 @@
-package com.ironhack.vbnk_transactionservice.data.controllers.impl;
+package com.ironhack.vbnk_transactionservice.controllers.impl;
 
+import com.ironhack.vbnk_transactionservice.controllers.TransactionController;
 import com.ironhack.vbnk_transactionservice.data.TransactionState;
 import com.ironhack.vbnk_transactionservice.data.TransactionType;
-import com.ironhack.vbnk_transactionservice.data.controllers.TransactionController;
 import com.ironhack.vbnk_transactionservice.data.dto.TransactionDTO;
 import com.ironhack.vbnk_transactionservice.data.http.request.TransferRequest;
 import com.ironhack.vbnk_transactionservice.data.http.request.UpdateTransactionRequest;
@@ -23,7 +23,6 @@ import static com.ironhack.vbnk_transactionservice.data.TransactionType.BANK_CHA
 import static com.ironhack.vbnk_transactionservice.data.TransactionType.BANK_INCOME;
 
 @RestController
-
 @RequestMapping("/v1/trans")
 public class TransactionControllerWeb implements TransactionController {
 
@@ -33,16 +32,17 @@ public class TransactionControllerWeb implements TransactionController {
     public TransactionControllerWeb(TransactionService service) {
         this.service = service;
     }
-@Override
+
+    @Override
     @GetMapping("/public/{ping}")
-    public String ping(Authentication auth, @PathVariable(name = "ping") String ping)   {
-        return ping.replace('i','o');
+    public String ping(Authentication auth, @PathVariable(name = "ping") String ping) {
+        return ping.replace('i', 'o');
     }
 
     @Override
-    @PostMapping( "/main/trf")
-    public ResponseEntity<TransferResponse> transferTo( Authentication auth,@RequestBody TransferRequest request) throws ServiceUnavailableException {
-        return service.initiateTransferRequest(auth,request );
+    @PostMapping("/main/trf")
+    public ResponseEntity<TransferResponse> transferTo(Authentication auth, @RequestBody TransferRequest request) throws ServiceUnavailableException {
+        return service.initiateTransferRequest(auth, request);
     }
 
     @Override
@@ -54,20 +54,22 @@ public class TransactionControllerWeb implements TransactionController {
     @Override
     @PostMapping("/main/cnf")
     public void confirmPendingTransaction(Authentication auth, @RequestBody String transactionId) throws ServiceUnavailableException {
-        TransactionDTO trans=null;
+        TransactionDTO trans = null;
         try {
             trans = service.getTransaction(transactionId).getBody();
-        }catch (Throwable ignored){}
-        if(trans!=null&& trans.getState()== TransactionState.PENDING){
-            transferTo(auth,trans.getRequest());
+        } catch (Throwable ignored) {
+        }
+        if (trans != null && trans.getState() == TransactionState.PENDING) {
+            transferTo(auth, trans.getRequest());
             try {
                 if (trans.getType() == TransactionType.PAYMENT_ORDER) transferTo(auth, trans.getRequest());
                 trans.setState(TransactionState.OK);
-            }catch (Throwable err){
+            } catch (Throwable err) {
                 trans.setState(NOK);
             }
         }
     }
+
     @Override
     @PostMapping("/main/statements/{pag}")
     public List<StatementView> getStatements(Authentication auth,
@@ -75,7 +77,7 @@ public class TransactionControllerWeb implements TransactionController {
                                              @RequestBody String account) {
         try {
             return service.getAccountStatements(pag, account);
-        }catch (Throwable err){
+        } catch (Throwable err) {
             return new ArrayList<StatementView>();
         }
     }
@@ -83,7 +85,7 @@ public class TransactionControllerWeb implements TransactionController {
     @Override
     @PostMapping("/client/update")
     public void registerBankUpdate(UpdateTransactionRequest request) throws ServiceUnavailableException {
-        service.createTransaction(DataTransferResponse.fromUpdateRequest(request),request.isCharge()?BANK_CHARGE:BANK_INCOME);
+        service.createTransaction(DataTransferResponse.fromUpdateRequest(request), request.isCharge() ? BANK_CHARGE : BANK_INCOME);
         service.checkPendingTransactions(request.getAccountId());
     }
 }

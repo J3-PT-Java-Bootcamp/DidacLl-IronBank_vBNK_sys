@@ -1,4 +1,4 @@
-package com.ironhack.vbnk_transactionservice.data.controllers;
+package com.ironhack.vbnk_transactionservice.controllers;
 
 import com.ironhack.vbnk_transactionservice.data.http.request.TransferRequest;
 import com.ironhack.vbnk_transactionservice.data.http.request.UpdateTransactionRequest;
