@@ -17,21 +17,39 @@ echo 			please, be patient...
 timeout 10> nul
 echo							[1;32m.OK 	[1;37m
 echo.
+timeout 1 > nul
 echo 		Launching keycloak-19 server...
 start /min "vBNK_Keycloak-19" cmd /k "%~dp0keycloak-19.0.1\bin\kc.bat start-dev"
 timeout 10 > nul
 echo			[1;32m				.OK[1;37m
 echo.
+timeout 1 > nul
 echo 		Loading authentication service...
 start /min "vBNK_AUTHENTICATIONservice" cmd /k  java -jar "%~dp0vBNK_security-service\target\vBNK-authentication-service-0.0.1-SNAPSHOT.jar"
 timeout 5 > nul
 echo						[1;32m	.OK[1;37m
 echo.
+timeout 1 > nul
 echo 		Loading anti fraud service...
 start /min "vBNK_ANTIFRAUDservice" cmd /k  java -jar "%~dp0vBNK_anti-fraud-service\target\vBNK_anti-fraud-service-0.0.1-SNAPSHOT.jar"
 timeout 5 > nul
 echo						[1;32m	.OK[1;37m
 echo.
+echo.
+timeout 1 > nul
+echo 		Loading data service...
+start /min "vBNK_DATAservice" cmd /k  java -jar "%~dp0vBNK_data-service\target\vBNK_data-service-0.0.1-SNAPSHOT.jar"
+timeout 10> nul
+echo						[1;32m	.OK[1;37m
+echo.
+echo.
+timeout 1 > nul
+echo 		Loading transaction service...
+timeout 10 > nul
+start /min "vBNK_TRANSACTIONservice" cmd /k  java -jar "%~dp0vBNK_transaction-service\target\vBNK_transaction-service-0.0.1-SNAPSHOT.jar"
+echo						[1;32m	.OK[1;37m
+echo.
+timeout 1 > nul
 echo 		Loading gateway service...
 timeout 10 > nul
 start  /min "vBNK_GATEWAYservice" cmd /k  java -jar ""%~dp0vBNK_gateway-service\target\vbnk-gateway-0.0.1-SNAPSHOT.jar"

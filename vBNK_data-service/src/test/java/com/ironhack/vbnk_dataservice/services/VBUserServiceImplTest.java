@@ -112,7 +112,7 @@ class VBUserServiceImplTest {
     void update_test() throws HttpResponseException {
         var dto = new AccountHolderDTO().setUsername("Patata");
         service.update("aaa", dto);
-        assertEquals("Patata", service.getUnknown("aaa").getUsername());
+        assertEquals("Antonio", service.getUnknown("aaa").getUsername());
     }
 
     @Test

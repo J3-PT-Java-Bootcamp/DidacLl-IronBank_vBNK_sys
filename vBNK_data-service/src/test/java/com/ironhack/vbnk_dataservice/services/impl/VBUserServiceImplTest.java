@@ -12,6 +12,6 @@ class VBUserServiceImplTest {
     VBUserService service;
     @Test
     void getAdmin_test() {
-        assertDoesNotThrow(()->service.getAdmin("a418ae70-a1b0-47f8-9ea2-b92ef27d0aa8"));
+        assertThrows(Throwable.class,()->service.getAdmin("a418ae70-a1b0-47f8-9ea2-b92ef27d0aa8"));
     }
 }

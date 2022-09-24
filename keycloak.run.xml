@@ -4,7 +4,7 @@
     <option name="WORKING_DIRECTORY" value="" />
     <option name="PARENT_ENVS" value="true" />
     <module name="" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../keycloak-19.0.1/bin/start.bat" />
+    <option name="SCRIPT_NAME" value="./keycloak-19.0.1/bin/start.bat" />
     <option name="PARAMETERS" value="" />
     <method v="2">
       <option name="Make" enabled="true" />

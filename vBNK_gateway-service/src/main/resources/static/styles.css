@@ -6,7 +6,6 @@ body {
     height: 100%;
     background: radial-gradient(circle at center, #293c3d 1%, black);
     color: azure;
-    border: blue solid 1px;
 }
 
 h1 {
