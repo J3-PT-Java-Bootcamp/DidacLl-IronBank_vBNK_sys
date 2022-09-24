@@ -24,6 +24,10 @@ A list of technologies used within the project:
 * Maven
 * [Library name] org.junit.jupiter: Version 5.8.2
 * [Library name] org.jetbrains: Version RELEASE (Latest one)
+* [Library name] org.projectlombok
+* [Library name] org.keycloak: Version 19.0.0
+* [Library name] org.springdoc.openapi: Version 1.6.11
+
 
 
 ## Installation
